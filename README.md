@@ -4,8 +4,8 @@ We’re building a Python library that can help search, clean, and recommend mov
 
 ## Team Members
 - Kristina Mathurin — Search & Retrieval
-— Data Validation
- — Recommendations & Analytics
+— Johnny Data Validation
+- Jimmy Recommendations & Analytics
 
 ## How It Works
 We’re each making 3–5 functions inside one main Python file called `movie_lib.py`.
