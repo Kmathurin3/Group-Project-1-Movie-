@@ -137,5 +137,125 @@ def recommend_trending_unwatched(users, username, movies, top_n=5):
                 break
     return recommendations
 
+# Jonathan Bressman - Analytics and Reporting
 
-               
+def get_most_watched_movies(watch_events, top_n=5):
+    """Show the movies that were finished the most times."""
+    counts = {}
+    for event in watch_events:
+        if event.get("event") == "finish":
+            movie = event.get("movie_id")
+            if movie:
+                counts[movie] = counts.get(movie, 0) + 1
+    sorted_movies = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+    return sorted_movies[:top_n]
+
+def get_highest_rated_movies(movies, top_n=5):
+    """Show the movies with the highest ratings."""
+    rated = []
+    for movie in movies:
+        rating = movie.get("rating")
+        if isinstance(rating, (int, float)):
+            rated.append((movie.get("title", ""), rating))
+    rated.sort(key=lambda x: x[1], reverse=True)
+    return rated[:top_n]
+
+def get_user_engagement(watch_events):
+    """Track how much each user has watched and how many movies they finished."""
+    engagement = {}
+    for event in watch_events:
+        user = event.get("user_id")
+        if not user:
+            continue
+        if user not in engagement:
+            engagement[user] = {"events": 0, "finishes": 0, "watch_seconds": 0}
+        engagement[user]["events"] += 1
+        if event.get("event") == "finish":
+            engagement[user]["finishes"] += 1
+        engagement[user]["watch_seconds"] += event.get("watch_seconds", 0)
+    return engagement
+
+def get_average_watch_time(watch_events):
+    """Find the average amount of time spent watching per event."""
+    times = []
+    for e in watch_events:
+        if "watch_seconds" in e:
+            times.append(e["watch_seconds"])
+    if not times:
+        return 0
+    return sum(times) / len(times)
+
+def check_recommendation_accuracy(recommendations, actual, k=5):
+    """See how accurate recommendations were based on what users actually watched."""
+    total_precision = 0
+    total_recall = 0
+    user_count = 0
+
+    for user, rec_list in recommendations.items():
+        real_list = actual.get(user, [])
+        if not real_list:
+            continue
+        user_count += 1
+        hits = 0
+        for movie in rec_list[:k]:
+            if movie in real_list:
+                hits += 1
+        precision = hits / len(rec_list[:k]) if rec_list else 0
+        recall = hits / len(real_list) if real_list else 0
+        total_precision += precision
+        total_recall += recall
+
+    if user_count == 0:
+        return {"precision@k": 0, "recall@k": 0}
+
+    return {
+        "precision@k": total_precision / user_count,
+        "recall@k": total_recall / user_count,
+    }
+
+def get_popular_trending_movies(watch_events, recent_days=7):
+    """Find movies that have been watched most in the last few days."""
+    from datetime import datetime, timedelta
+    now = datetime.utcnow()
+    cutoff = now - timedelta(days=recent_days)
+    counts = {}
+
+    for event in watch_events:
+        if event.get("event") != "finish":
+            continue
+        time = event.get("timestamp")
+        if not time:
+            continue
+        try:
+            time = datetime.fromisoformat(time)
+        except Exception:
+            continue
+        if time >= cutoff:
+            movie = event.get("movie_id")
+            if movie:
+                counts[movie] = counts.get(movie, 0) + 1
+
+    sorted_movies = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+    return sorted_movies
+
+def make_usage_report(movies, watch_events):
+    """Make a short report showing totals and top movies."""
+    total_movies = len(movies)
+    total_users = len(set(e.get("user_id") for e in watch_events if e.get("user_id")))
+    total_events = len(watch_events)
+    avg_watch = get_average_watch_time(watch_events)
+    top_views = get_most_watched_movies(watch_events)
+    top_rated = get_highest_rated_movies(movies)
+    trending = get_popular_trending_movies(watch_events)
+
+    return {
+        "Totals": {
+            "Total Movies": total_movies,
+            "Unique Users": total_users,
+            "Total Events": total_events,
+            "Average Watch Time (seconds)": round(avg_watch, 2)
+        },
+        "Top Movies by Views": top_views,
+        "Top Movies by Rating": top_rated,
+        "Trending Movies": trending
+    }  
