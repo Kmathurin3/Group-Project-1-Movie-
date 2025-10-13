@@ -59,3 +59,83 @@ def search_catalog(movies, query):
         if match:
             results.append(movie)
     return results
+
+# Jimmy Tolton - Recommendations and Analytics
+
+
+def search_movies_by_title(movies, keyword):
+    """Return movies that have the keyword in their title."""
+    if not isinstance(keyword, str) or not keyword.strip():
+        return []
+    keyword = keyword.lower()
+    results = []
+    for movie in movies:
+        title = movie.get('title', '').lower()
+        if keyword in title:
+            results.append(movie)
+    return results
+
+
+def trending_movies(movies, top_n=5):
+    """Return the top N movies based on number of ratings."""
+    if not isinstance(top_n, int) or top_n <= 0:
+        top_n = 5
+    movies_sorted = movies[:]
+    movies_sorted.sort(key=lambda m: len(m.get('ratings', [])), reverse=True)
+    return movies_sorted[:top_n]
+
+
+def recommend_by_genre(users, username, movies, genre):
+    """Recommend movies of a specific genre that the user hasn't watched."""
+    if username not in users or not isinstance(genre, str) or not genre.strip():
+        return []
+    genre = genre.lower()
+    watched = users[username].get('watch_history', [])
+    recommendations = []
+    for movie in movies:
+        title = movie.get('title', '')
+        movie_genre = movie.get('genre', '').lower()
+        if title and genre in movie_genre and title not in watched:
+            recommendations.append(movie)
+    return recommendations
+
+
+def filter_movies_by_genre_and_year(movies, genre=None, year=None):
+    """Return movies that match a given genre and/or release year."""
+    results = []
+    for movie in movies:
+        title = movie.get('title', '')
+        movie_genre = movie.get('genre', '').lower()
+        movie_year = movie.get('year')
+        if title:
+            if genre and genre.lower() not in movie_genre:
+                continue
+            if year and movie_year != year:
+                continue
+            results.append(movie)
+    return results
+
+
+def recommend_trending_unwatched(users, username, movies, top_n=5):
+    """Recommend trending movies that the user hasn't watched yet."""
+    if username not in users:
+        return []
+    watched = users[username].get('watch_history', [])
+    movies_sorted = movies[:]
+    movies_sorted.sort(key=lambda m: len(m.get('ratings', [])), reverse=True)
+    recommendations = []
+    for movie in movies_sorted:
+        if movie.get('title', '') not in watched:
+            recommendations.append(movie)
+        if len(recommendations) >= top_n:
+            break
+    if len(recommendations) < top_n:
+        for movie in movies:
+            if movie.get('title', '') not in watched and movie not in recommendations:
+                recommendations.append(movie)
+            if len(recommendations) >= top_n:
+                break
+    return recommendations
+
+
+               
