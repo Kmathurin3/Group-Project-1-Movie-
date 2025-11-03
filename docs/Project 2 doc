@@ -1,0 +1,16 @@
+# Class Design
+
+## Movie 
+Represents a single movie in the system (title, genre, year, rating).
+
+## UserProfile / User 
+Represents a platform user; connects to watch history.
+
+## MovieCatalog 
+Manages the full collection of Movie objects and exposes search/filter/recommend by calling our Project 1 functions from `src/movie_lib.py`. Includes validation and max size.
+
+## WatchLog
+Records user watch events (start, finish, rate) with timestamps.
+
+## AnalyticsDashboard 
+Uses movies + watch events to produce reports (most watched, trending, accuracy).
