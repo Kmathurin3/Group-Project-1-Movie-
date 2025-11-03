@@ -78,3 +78,98 @@ class MovieCatalog:
 
     def __str__(self):
         return f"MovieCatalog '{self._name}' ({len(self._movies)} movies)"
+
+
+class Movie:
+    """
+    Represents a movie with title, genre, year, and viewer ratings.
+    """
+
+    def __init__(self, title: str, genre: str, year: int):
+        if not title.strip():
+            raise ValueError("Movie title cannot be empty.")
+        self._title = title
+        self._genre = genre
+        self._year = year
+        self._ratings = []  # list of floats
+
+    @property
+    def title(self) -> str:
+        """Get the movie title."""
+        return self._title
+
+    @property
+    def genre(self) -> str:
+        """Get the movie genre."""
+        return self._genre
+
+    @property
+    def year(self) -> int:
+        """Get the movie release year."""
+        return self._year
+
+    def add_rating(self, rating: float):
+        """
+        Add a rating between 0 and 5 (inclusive).
+        Raises ValueError if out of range.
+        """
+        if not (0 <= rating <= 5):
+            raise ValueError("Rating must be between 0 and 5.")
+        self._ratings.append(rating)
+
+    def average_rating(self) -> float:
+        """
+        Compute and return the average rating.
+        Returns 0.0 if no ratings exist.
+        """
+        if not self._ratings:
+            return 0.0
+        return sum(self._ratings) / len(self._ratings)
+
+    def __str__(self) -> str:
+        """String representation of a movie."""
+        avg = self.average_rating()
+        return f"{self._title} ({self._year}) - {self._genre} | Avg Rating: {avg:.1f}"
+
+
+
+class User:
+    """
+    Represents a user who can watch and rate movies.
+    """
+
+    def __init__(self, username: str):
+        if not username.strip():
+            raise ValueError("Username cannot be empty.")
+        self._username = username
+        self._watched = {}  # {Movie: rating}
+
+    @property
+    def username(self) -> str:
+        """Return the username."""
+        return self._username
+
+    def watch_movie(self, movie: Movie, rating: float | None = None):
+        """
+        Record that a user has watched a movie and optionally rated it.
+        """
+        self._watched[movie] = rating
+        if rating is not None:
+            try:
+                movie.add_rating(rating)
+            except ValueError as e:
+                print(f"[Error] {e} — rating not added for '{movie.title}'")
+
+    def has_watched(self, movie: Movie) -> bool:
+        """Check if the user has watched a given movie."""
+        return movie in self._watched
+
+    def list_watched(self):
+        """Return a list of watched movie titles."""
+        return [m.title for m in self._watched]
+
+    def __str__(self) -> str:
+        """Readable representation of user activity."""
+        count = len(self._watched)
+        return f"User: {self._username} | Movies watched: {count}"
+
