@@ -1,6 +1,7 @@
 # src/movie_systems.py
 
 from datetime import datetime, timedelta
+from abc import ABC, abstractmethod
 from src.movie_lib import search_movies, filter_by_genre, recommend_by_rating
 
 
@@ -360,3 +361,102 @@ class AnalyticsDashboard:
 
     def __repr__(self):
         return f"AnalyticsDashboard(movies={len(self._movies)}, events={len(self.watch_events)})"
+
+class BaseRecommender(ABC):
+    """Abstract base class for all movie recommendation strategies."""
+
+    @abstractmethod
+    def recommend(self, user, movies, k=5):
+        """Return up to k Movie objects for this user.
+
+        Args:
+            user: User object we are recommending for.
+            movies (list): List of Movie objects we can pick from.
+            k (int): Maximum number of movies to return.
+
+        Returns:
+            list: Recommended Movie objects.
+        """
+        raise NotImplementedError
+class RatingRecommender(BaseRecommender):
+    """Recommend the highest-rated movies the user has not watched yet."""
+
+    def recommend(self, user, movies, k=5):
+        """Return up to k top-rated unseen movies.
+
+        Args:
+            user: User object with a list_watched() method.
+            movies (list): List of Movie objects.
+            k (int): Maximum number of movies to return.
+
+        Returns:
+            list: Top-rated Movie objects the user has not watched.
+        """
+        
+        seen_titles = set(user.list_watched())
+
+        candidates = [m for m in movies if m.title not in seen_titles]
+
+        candidates.sort(key=lambda m: m.average_rating(), reverse=True)
+
+        return candidates[:k]
+        
+class GenreRecommender(BaseRecommender):
+    """Recommend movies based on the user's most-watched genre."""
+
+    def _most_watched_genre(self, user):
+        """Find the genre the user has watched the most.
+
+        Args:
+            user: User object we are analyzing.
+
+        Returns:
+            str | None: Genre name in lowercase, or None if no history.
+        """
+        genre_counts = {}
+        for movie in getattr(user, "_watched", {}):
+            g = movie.genre.lower()
+            genre_counts[g] = genre_counts.get(g, 0) + 1
+
+        if not genre_counts:
+            return None
+
+        return max(genre_counts, key=genre_counts.get)
+
+    def recommend(self, user, movies, k=5):
+        """Return up to k movies from the user's favorite genre.
+
+        If there are not enough movies in that genre, fill the rest
+        with highest-rated unseen movies.
+
+        Args:
+            user: User object.
+            movies (list): List of Movie objects.
+            k (int): Maximum number of movies to return.
+
+        Returns:
+            list: Recommended Movie objects.
+        """
+        seen_titles = set(user.list_watched())
+        top_genre = self._most_watched_genre(user)
+
+        if top_genre is None:
+            fallback = RatingRecommender()
+            return fallback.recommend(user, movies, k=k)
+
+        primary = [
+            m for m in movies
+            if m.title not in seen_titles and m.genre.lower() == top_genre
+        ]
+
+        if len(primary) >= k:
+            return primary[:k]
+
+        remaining = k - len(primary)
+        others = [
+            m for m in movies
+            if m.title not in seen_titles and m not in primary
+        ]
+        others.sort(key=lambda m: m.average_rating(), reverse=True)
+
+        return primary + others[:remaining]
