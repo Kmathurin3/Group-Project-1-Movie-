@@ -16,3 +16,21 @@ def validate_year(year):
     """Check if a movie year is valid."""
     return 1888 <= int(year) <= 2100
 ```
+
+
+
+## Polymorphism
+
+For Project 3, I added polymorphism to our movie recommendation system.
+
+We already had a base abstract class called `BaseRecommender`, and two subclasses:
+- `GenreRecommender`
+- `RatingRecommender`
+
+To show polymorphism, I added a method in the base class called `describe()`.  
+Each subclass overrides this method to explain its own recommendation strategy.
+
+**BaseRecommender**
+```python
+def describe(self):
+    return "Base recommendation strategy."
