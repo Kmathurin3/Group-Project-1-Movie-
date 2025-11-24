@@ -362,6 +362,8 @@ class AnalyticsDashboard:
     def __repr__(self):
         return f"AnalyticsDashboard(movies={len(self._movies)}, events={len(self.watch_events)})"
 
+# Parts 1 and 2 (Inheritance and Abstract Classes)
+
 class BaseRecommender(ABC):
     """Abstract base class for all movie recommendation strategies."""
 
