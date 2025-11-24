@@ -481,3 +481,26 @@ def compare_recommenders(user, movies, recommenders, k=5):
         else:
             print("No recommendations.")
             print()
+
+# Part 4 (Composition)
+class Movie:
+    def __init__(self, title, year, rating):
+        self.title = title
+        self.year = year
+        self.rating = rating
+
+
+class Catalog:
+    def __init__(self):
+        self.movies = []  
+    def add_movie(self, movie: Movie):
+        self.movies.append(movie)
+
+    def get_all_titles(self):
+        return [m.title for m in self.movies]
+
+# Explanation
+# A Catalog is not a type of Movie, and a Movie does not extend or specialize Catalog behavior. 
+# Instead, a Catalog contains Movie instances as part of its structure, forming a true “has-a” relationship. 
+# Composition is the best choice because it models how a real catalog depends on its movies, while inheritance would incorrectly 
+# imply a Catalog is a Movie, which makes no sense in the domain.
