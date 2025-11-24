@@ -365,8 +365,12 @@ class AnalyticsDashboard:
 class BaseRecommender(ABC):
     """Abstract base class for all movie recommendation strategies."""
 
+    def describe(self):
+        return "Base recommendation strategy."
+
     @abstractmethod
     def recommend(self, user, movies, k=5):
+    
         """Return up to k Movie objects for this user.
 
         Args:
@@ -380,6 +384,8 @@ class BaseRecommender(ABC):
         raise NotImplementedError
 class RatingRecommender(BaseRecommender):
     """Recommend the highest-rated movies the user has not watched yet."""
+     def describe(self):
+        return "Rating-based recommendation strategy."
 
     def recommend(self, user, movies, k=5):
         """Return up to k top-rated unseen movies.
@@ -403,6 +409,8 @@ class RatingRecommender(BaseRecommender):
         
 class GenreRecommender(BaseRecommender):
     """Recommend movies based on the user's most-watched genre."""
+    def describe(self):
+        return "Genre-based recommendation strategy."
 
     def _most_watched_genre(self, user):
         """Find the genre the user has watched the most.
@@ -460,3 +468,16 @@ class GenreRecommender(BaseRecommender):
         others.sort(key=lambda m: m.average_rating(), reverse=True)
 
         return primary + others[:remaining]
+def compare_recommenders(user, movies, recommenders, k=5):
+    """
+    Demonstrates polymorphism.
+    Each recommender is treated as a BaseRecommender.
+    """
+    for rec in recommenders:
+        print("Strategy:", rec.describe())
+        results = rec.recommend(user, movies, k=k)
+        if results:
+            print("Top result:", results[0].title)
+        else:
+            print("No recommendations.")
+            print()
