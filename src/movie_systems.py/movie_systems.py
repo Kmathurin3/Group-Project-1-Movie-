@@ -3,6 +3,8 @@
 from datetime import datetime, timedelta
 from abc import ABC, abstractmethod
 from src.movie_lib import search_movies, filter_by_genre, recommend_by_rating
+from src.persistence import save_system_state, load_system_state
+from src.import_export import import_movies_from_csv, export_report_to_json
 
 
 class MovieCatalog:
@@ -361,6 +363,104 @@ class AnalyticsDashboard:
 
     def __repr__(self):
         return f"AnalyticsDashboard(movies={len(self._movies)}, events={len(self.watch_events)})"
+
+class MovieSystem:
+    """Top-level system class that integrates catalog, users, watch log, and analytics."""
+
+    def __init__(self, catalog):
+        if not hasattr(catalog, "movies"):
+            raise ValueError("catalog must be a MovieCatalog-like object with .movies")
+        self._catalog = catalog
+        self._users = {}
+        self._watch_log = WatchLog()
+        self._analytics = AnalyticsDashboard(self._catalog.movies, self._watch_log)
+
+    @property
+    def catalog(self):
+        return self._catalog
+
+    @property
+    def watch_log(self):
+        return self._watch_log
+
+    @property
+    def analytics(self):
+        self._analytics.movies = self._catalog.movies
+        return self._analytics
+
+    @property
+    def users(self):
+        return dict(self._users)
+
+    def add_user(self, user):
+        username = getattr(user, "username", "")
+        if not isinstance(username, str) or not username.strip():
+            raise ValueError("user must have a non-empty username")
+        self._users[username] = user
+
+    def get_user(self, username):
+        return self._users.get(username)
+
+    def log_finish(self, username, movie_id, watch_seconds=0, timestamp=None):
+        """Record that a user finished a movie."""
+        if username not in self._users:
+            raise ValueError("Unknown user")
+        self._watch_log.add_event(
+            user_id=username,
+            movie_id=movie_id,
+            event="finish",
+            timestamp=timestamp,
+            watch_seconds=watch_seconds
+        )
+
+    def usage_report(self):
+        return self.analytics.usage_report()
+
+    def save(self, path):
+        """Save current state to JSON."""
+        save_system_state(path, self._catalog, self._users, self._watch_log)
+
+    def load(self, path, movie_factory=None, user_factory=None):
+        """Load state from JSON and rebuild objects.
+
+        If factories are not provided, movies and users will load as dicts.
+        """
+        data = load_system_state(path)
+
+        self._catalog._movies.clear()
+        for m in data["movies"]:
+            obj = m
+            if callable(movie_factory):
+                obj = movie_factory(m)
+            mid = obj.get("movie_id") if isinstance(obj, dict) else getattr(obj, "movie_id", None)
+            if not mid:
+                continue
+            self._catalog._movies[mid] = obj
+
+        self._users.clear()
+        for u in data["users"]:
+            obj = u
+            if callable(user_factory):
+                obj = user_factory(u)
+            uname = obj.get("username") if isinstance(obj, dict) else getattr(obj, "username", "")
+            if uname:
+                self._users[uname] = obj
+
+        self._watch_log = WatchLog(data["watch_events"])
+        self._analytics = AnalyticsDashboard(self._catalog.movies, self._watch_log)
+
+    def import_movies_csv(self, csv_path):
+        """Import movies from CSV into the catalog as dicts."""
+        imported = import_movies_from_csv(csv_path)
+        for m in imported:
+            mid = m.get("movie_id")
+            if mid:
+                self._catalog._movies[mid] = m
+
+    def export_usage_report_json(self, path):
+        report = self.usage_report()
+        export_report_to_json(report, path)
+
 
 # Parts 1-3 (Inheritance, Abstract Classes and Polymorphism)
 
