@@ -34,3 +34,9 @@ Each subclass overrides this method to explain its own recommendation strategy.
 ```python
 def describe(self):
     return "Base recommendation strategy."
+
+## Video Presentation
+
+Project 4 video presentation demonstrating system functionality, data persistence, testing, and team collaboration:
+
+https://drive.google.com/file/d/1914B_zw9sRIvdPhQt_I5tXlcJGSyn4d8/view?usp=drive_link
