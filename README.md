@@ -20,6 +20,7 @@ def validate_year(year):
 
 
 ## Project 4 Enhancements
+- End-to-end system demonstration included in video presentation
 
 For Project 4, this repository was extended to include:
 - Integrated system workflows
