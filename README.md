@@ -19,21 +19,14 @@ def validate_year(year):
 
 
 
-## Polymorphism
+## Project 4 Enhancements
 
-For Project 3, I added polymorphism to our movie recommendation system.
-
-We already had a base abstract class called `BaseRecommender`, and two subclasses:
-- `GenreRecommender`
-- `RatingRecommender`
-
-To show polymorphism, I added a method in the base class called `describe()`.  
-Each subclass overrides this method to explain its own recommendation strategy.
-
-**BaseRecommender**
-```python
-def describe(self):
-    return "Base recommendation strategy."
+For Project 4, this repository was extended to include:
+- Integrated system workflows
+- Data persistence using JSON
+- CSV import and export functionality
+- Comprehensive unit, integration, and system testing
+- Architecture and documentation updates
 
 
 ## Video Presentation
