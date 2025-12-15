@@ -34,4 +34,4 @@ For Project 4, this repository was extended to include:
 
 Project 4 video presentation demonstrating system functionality, data persistence, testing, and team collaboration:
 
-[Watch the video here](https://drive.google.com/file/d/1914B_zw9sRIVdPhQt_I5tXlcJGSyn4d8/view?usp=drive_link)
+[Watch the video here](https://drive.google.com/file/d/1914B_zw9sRIvdPhQt_I5tXlcJGSyn4d8/view?usp=drive_link)
